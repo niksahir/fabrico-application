@@ -11,9 +11,15 @@ use App\Models\TicketAttachment;
 
 class TicketController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tickets = Ticket::with(['user', 'staff', 'attachments'])->latest()->get();
+        $query = Ticket::with(['user', 'staff', 'attachments'])->latest();
+
+        if ($request->has('status') && in_array($request->status, ['pending', 'completed'])) {
+            $query->where('status', $request->status);
+        }
+
+        $tickets = $query->paginate($request->get('per_page', 10));
 
         if ($tickets->isEmpty()) {
             return response()->json(['message' => 'No tickets found'], 200);

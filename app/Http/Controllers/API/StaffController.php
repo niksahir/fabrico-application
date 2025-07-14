@@ -7,12 +7,21 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class StaffController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return User::where('role', 'staff')->get();
+        $staff = User::where('role', 'staff')
+            ->latest()
+            ->paginate($request->get('per_page', 10));
+
+        if ($staff->isEmpty()) {
+            return response()->json(['message' => 'No staff found'], 200);
+        }
+
+        return response()->json($staff);
     }
 
     public function store(Request $request)
@@ -30,16 +39,36 @@ class StaffController extends Controller
         return User::create($validated);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $staff = User::where('role', 'staff')->findOrFail($id);
-        $tickets = Ticket::where('assigned_to', $id)->get();
+        try {
+            $validator = Validator::make(['id' => $id], [
+                'id' => 'required|integer|exists:users,id',
+            ]);
 
-        return response()->json([
-            'staff' => $staff,
-            'tickets' => $tickets
-        ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $staff = User::where('role', 'staff')->findOrFail($id);
+
+            $tickets = Ticket::where('assigned_to', $id)
+                ->with(['user', 'attachments'])
+                ->latest()
+                ->paginate($request->get('per_page', 10));
+
+            return response()->json([
+                'staff' => $staff,
+                'tickets' => $tickets
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+
 
     public function update(Request $request, $id)
     {
