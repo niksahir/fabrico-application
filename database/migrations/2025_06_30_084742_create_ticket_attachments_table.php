@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->string('file_path');
-            $table->enum('file_type', ['invoice', 'warranty']);
+            $table->string('file_type');
             $table->timestamps();
         });
     }

@@ -4,49 +4,117 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Ticket;
+use App\Models\TicketAttachment;
 
 class TicketController extends Controller
 {
     public function index()
     {
-        return Ticket::with(['user', 'staff', 'attachments'])->latest()->get();
+        $tickets = Ticket::with(['user', 'staff', 'attachments'])->latest()->get();
+
+        if ($tickets->isEmpty()) {
+            return response()->json(['message' => 'No tickets found'], 200);
+        }
+
+        return response()->json($tickets);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'machine' => 'required|string',
-            'issue_description' => 'required|string',
-            'status' => 'in:pending,assigned,completed,closed',
-            'assigned_to' => 'nullable|exists:users,id'
-        ]);
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'machine' => 'required|string',
+                'issue_description' => 'required|string',
+                'status' => 'in:pending,assigned,completed,closed',
+                'assigned_to' => 'nullable|exists:users,id',
+                'attachments.*' => 'nullable|file|max:2048',
+            ]);
 
-        return Ticket::create($validated);
+            DB::beginTransaction();
+
+            $ticket = Ticket::create($validated);
+
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('ticket_attachments', 'public');
+                    TicketAttachment::create([
+                        'ticket_id' => $ticket->id,
+                        'file_path' => $path,
+                        'file_type' => $file->getClientMimeType(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json($ticket->load(['user', 'staff', 'attachments']), 201);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to create ticket', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function show(Ticket $ticket)
     {
-        return $ticket->load(['user', 'staff', 'attachments']);
+        if (!$ticket) {
+            return response()->json(['message' => 'Ticket not found'], 200);
+        }
+
+        return response()->json($ticket->load(['user', 'staff', 'attachments']));
     }
 
     public function update(Request $request, Ticket $ticket)
     {
-        $validated = $request->validate([
-            'machine' => 'sometimes|string',
-            'issue_description' => 'sometimes|string',
-            'status' => 'sometimes|in:pending,assigned,completed,closed',
-            'assigned_to' => 'nullable|exists:users,id'
-        ]);
+        try {
+            $validated = $request->validate([
+                'machine' => 'sometimes|string',
+                'issue_description' => 'sometimes|string',
+                'status' => 'sometimes|in:pending,assigned,completed,closed',
+                'assigned_to' => 'nullable|exists:users,id',
+                'attachments.*' => 'nullable|file|max:2048',
+            ]);
 
-        $ticket->update($validated);
-        return $ticket;
+            DB::beginTransaction();
+
+            $ticket->update($validated);
+
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('ticket_attachments', 'public');
+                    TicketAttachment::create([
+                        'ticket_id' => $ticket->id,
+                        'file_path' => $path,
+                        'file_type' => $file->getClientMimeType(),
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return response()->json($ticket->load(['user', 'staff', 'attachments']), 200);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to update ticket', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function destroy(Ticket $ticket)
     {
-        $ticket->delete();
-        return response()->json(['message' => 'Ticket deleted successfully']);
+        try {
+            foreach ($ticket->attachments as $attachment) {
+                if (Storage::disk('public')->exists($attachment->file_path)) {
+                    Storage::disk('public')->delete($attachment->file_path);
+                }
+                $attachment->delete();
+            }
+
+            $ticket->delete();
+
+            return response()->json(['message' => 'Ticket deleted successfully'], 200);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Failed to delete ticket', 'message' => $e->getMessage()], 500);
+        }
     }
 }
