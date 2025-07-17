@@ -36,8 +36,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('tickets', TicketController::class);
     //Route::apiResource('ticket-attachments', TicketAttachmentController::class);
     Route::apiResource('quotations', QuotationController::class);
-    Route::apiResource('quotation-attachments', QuotationAttachmentController::class);
-    Route::apiResource('purchases', PurchaseController::class);
+    //Route::apiResource('quotation-attachments', QuotationAttachmentController::class);
+    //Route::apiResource('purchases', PurchaseController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('staff', StaffController::class);
     Route::apiResource('users', UserController::class);

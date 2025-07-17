@@ -5,17 +5,37 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Exception;
 
 class DashboardController extends Controller
 {
-    public function stats()
+    public function stats(): JsonResponse
     {
-        return response()->json([
-            'total_tickets' => Ticket::count(),
-            'pending_tickets' => Ticket::where('status', 'pending')->count(),
-            'completed_tickets' => Ticket::where('status', 'completed')->count(),
-            'total_users' => User::where('role', 'user')->count(),
-            'staff_members' => User::where('role', 'staff')->count()
-        ]);
+        try {
+            $totalTickets = Ticket::count();
+            $pendingTickets = Ticket::where('status', 'pending')->count();
+            $completedTickets = Ticket::where('status', 'completed')->count();
+            $totalUsers = User::where('role', 'user')->count();
+            $staffMembers = User::where('role', 'staff')->count();
+            $latestTickets = Ticket::with(['user', 'staff'])
+                ->latest('updated_at')
+                ->take(10)
+                ->get();
+
+            return response()->json([
+                'total_tickets' => $totalTickets,
+                'pending_tickets' => $pendingTickets,
+                'completed_tickets' => $completedTickets,
+                'total_users' => $totalUsers,
+                'staff_members' => $staffMembers,
+                'latest_tickets' => $latestTickets
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch dashboard stats',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -7,23 +7,68 @@ use App\Models\User;
 use App\Models\Ticket;
 use App\Models\Purchase;
 use App\Models\Quotation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return User::where('role', 'user')->get();
+        try {
+            $users = User::where('role', 'user')
+                ->latest()
+                ->paginate($request->get('per_page', 10));
+
+            if ($users->isEmpty()) {
+                return response()->json(['message' => 'No users found'], 200);
+            }
+
+            return response()->json($users);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch users',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $user = User::where('role', 'user')->findOrFail($id);
+        try {
+            $validator = Validator::make(['id' => $id], [
+                'id' => 'required|integer|exists:users,id',
+            ]);
 
-        return response()->json([
-            'user' => $user,
-            'tickets' => Ticket::where('user_id', $id)->get(),
-            'purchases' => Purchase::where('user_id', $id)->get(),
-            'quotations' => Quotation::where('user_id', $id)->get(),
-        ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $user = User::where('role', 'user')->findOrFail($id);
+            $perPage = $request->get('per_page', 10);
+
+            $tickets = Ticket::where('user_id', $id)
+                ->latest()
+                ->paginate($perPage, ['*'], 'tickets_page');
+
+            // $purchases = Purchase::where('user_id', $id)
+            //     ->latest()
+            //     ->paginate($perPage, ['*'], 'purchases_page');
+
+            $quotations = Quotation::where('user_id', $id)
+                ->latest()
+                ->paginate($perPage, ['*'], 'quotations_page');
+
+            return response()->json([
+                'user' => $user,
+                'tickets' => $tickets,
+                // 'purchases' => $purchases,
+                'quotations' => $quotations,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch user details',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
