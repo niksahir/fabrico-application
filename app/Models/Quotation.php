@@ -11,6 +11,13 @@ class Quotation extends Model
 
     protected $fillable = ['user_id', 'product_name', 'price', 'description', 'status'];
 
-    public function attachments() { return $this->hasMany(QuotationAttachment::class); }
-}
+    public function attachments()
+    {
+        return $this->hasMany(QuotationAttachment::class);
+    }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

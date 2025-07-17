@@ -15,20 +15,19 @@ class QuotationController extends Controller
     public function index(Request $request)
     {
         try {
-            $quotations = Quotation::with('attachments')
-                ->latest()
-                ->paginate($request->get('per_page', 10));
+            $query = Quotation::with(['attachments', 'user']);
 
-            if ($quotations->isEmpty()) {
-                return response()->json(['message' => 'No quotations found'], 200);
+            if ($search = $request->input('search')) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
             }
+
+            $quotations = $query->latest()->paginate($request->get('per_page', 10));
 
             return response()->json($quotations);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to fetch quotations',
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Error fetching quotations', 'error' => $e->getMessage()], 500);
         }
     }
 
