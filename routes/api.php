@@ -47,4 +47,5 @@ Route::middleware(['auth:sanctum', 'user'])->group(function () {
     Route::apiResource('tickets', TicketController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('machines', MachineController::class);
+    Route::apiResource('users', UserController::class);
 });
