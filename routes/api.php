@@ -11,7 +11,7 @@ use App\Http\Controllers\API\{
     StaffController,
     UserController,
     DashboardController,
-    ActivityLogController
+    MachineController
 };
 /*
 |--------------------------------------------------------------------------
@@ -34,14 +34,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('tickets', TicketController::class);
-    //Route::apiResource('ticket-attachments', TicketAttachmentController::class);
     Route::apiResource('quotations', QuotationController::class);
-    //Route::apiResource('quotation-attachments', QuotationAttachmentController::class);
     //Route::apiResource('purchases', PurchaseController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('staff', StaffController::class);
     Route::apiResource('users', UserController::class);
 
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
-    Route::get('dashboard/activities', [ActivityLogController::class, 'index']);
+});
+
+Route::middleware(['auth:sanctum', 'user'])->group(function () {
+    Route::apiResource('tickets', TicketController::class);
+    Route::apiResource('documents', DocumentController::class);
+    Route::apiResource('machines', MachineController::class);
 });

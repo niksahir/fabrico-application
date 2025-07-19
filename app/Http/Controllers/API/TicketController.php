@@ -19,6 +19,10 @@ class TicketController extends Controller
             $query->where('status', $request->status);
         }
 
+        if (auth()->user()->role == 'user') {
+            $query->where('user_id', auth()->id());
+        }
+
         $tickets = $query->paginate($request->get('per_page', 10));
 
         if ($tickets->isEmpty()) {
@@ -38,6 +42,9 @@ class TicketController extends Controller
                 'status' => 'in:pending,assigned,completed,closed',
                 'assigned_to' => 'nullable|exists:users,id',
                 'attachments.*' => 'nullable|file|max:2048',
+                'address' => 'nullable|string',
+                'contact_number' => 'nullable|string',
+                'machine_fault' => 'nullable|string',
             ]);
 
             DB::beginTransaction();
@@ -81,6 +88,9 @@ class TicketController extends Controller
                 'status' => 'sometimes|in:pending,assigned,completed,closed',
                 'assigned_to' => 'nullable|exists:users,id',
                 'attachments.*' => 'nullable|file|max:2048',
+                'address' => 'nullable|string',
+                'contact_number' => 'nullable|string',
+                'machine_fault' => 'nullable|string',
             ]);
 
             DB::beginTransaction();

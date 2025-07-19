@@ -13,12 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('action');
-            $table->text('description')->nullable();
-            $table->timestamps();
+        Schema::table('tickets', function (Blueprint $table) {
+            $table->text('address')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('machine_fault')->nullable();
         });
     }
 
@@ -29,6 +27,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('activity_logs');
+        Schema::table('tickets', function (Blueprint $table) {
+            $table->dropColumn(['address', 'contact_number', 'machine_fault']);
+        });
     }
 };
