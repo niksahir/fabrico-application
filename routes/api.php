@@ -29,23 +29,23 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    // You’ll add other protected routes here later (tickets, users, etc.)
+});
+
+Route::middleware(['auth:sanctum', 'role:admin,user'])->group(function () {
+    Route::apiResource('tickets', TicketController::class);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('documents', DocumentController::class);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::apiResource('tickets', TicketController::class);
     Route::apiResource('quotations', QuotationController::class);
     //Route::apiResource('purchases', PurchaseController::class);
-    Route::apiResource('documents', DocumentController::class);
     Route::apiResource('staff', StaffController::class);
-    Route::apiResource('users', UserController::class);
 
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
 });
 
 Route::middleware(['auth:sanctum', 'user'])->group(function () {
-    Route::apiResource('tickets', TicketController::class);
-    Route::apiResource('documents', DocumentController::class);
     Route::apiResource('machines', MachineController::class);
-    Route::apiResource('users', UserController::class);
 });
+
