@@ -25,10 +25,6 @@ class TicketController extends Controller
 
         $tickets = $query->paginate($request->get('per_page', 10));
 
-        if ($tickets->isEmpty()) {
-            return response()->json(['message' => 'No tickets found'], 200);
-        }
-
         return response()->json($tickets);
     }
 

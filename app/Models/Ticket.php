@@ -16,4 +16,12 @@ class Ticket extends Model
     public function user() { return $this->belongsTo(User::class); }
     public function staff() { return $this->belongsTo(User::class, 'assigned_to'); }
     public function attachments() { return $this->hasMany(TicketAttachment::class); }
+
+    protected $appends = ['ticket_number'];
+
+    public function getTicketNumberAttribute()
+    {
+        return 'TK-' . now()->year . str_pad($this->id, 4, '0', STR_PAD_LEFT);
+    }
+
 }

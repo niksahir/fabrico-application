@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Models\Purchase;
+use App\Models\Document;
 use App\Models\Quotation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -16,12 +17,9 @@ class UserController extends Controller
     {
         try {
             $users = User::where('role', 'user')
+                ->withCount('tickets') // assuming User has tickets() relationship
                 ->latest()
                 ->paginate($request->get('per_page', 10));
-
-            if ($users->isEmpty()) {
-                return response()->json(['message' => 'No users found'], 200);
-            }
 
             return response()->json($users);
         } catch (\Exception $e) {
@@ -50,19 +48,19 @@ class UserController extends Controller
                 ->latest()
                 ->paginate($perPage, ['*'], 'tickets_page');
 
-            // $purchases = Purchase::where('user_id', $id)
-            //     ->latest()
-            //     ->paginate($perPage, ['*'], 'purchases_page');
-
             $quotations = Quotation::where('user_id', $id)
                 ->latest()
                 ->paginate($perPage, ['*'], 'quotations_page');
 
+            $documents = Document::where('user_id', $id)
+                ->latest()
+                ->paginate($perPage, ['*'], 'documents_page');
+
             return response()->json([
                 'user' => $user,
                 'tickets' => $tickets,
-                // 'purchases' => $purchases,
                 'quotations' => $quotations,
+                'documents' => $documents,
             ]);
         } catch (\Exception $e) {
             return response()->json([
