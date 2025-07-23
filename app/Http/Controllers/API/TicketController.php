@@ -23,6 +23,10 @@ class TicketController extends Controller
             $query->where('user_id', auth()->id());
         }
 
+        if (auth()->user()->role == 'staff') {
+            $query->where('assigned_to', auth()->id());
+        }
+
         $tickets = $query->paginate($request->get('per_page', 10));
 
         return response()->json($tickets);
