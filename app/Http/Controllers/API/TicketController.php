@@ -15,8 +15,12 @@ class TicketController extends Controller
     {
         $query = Ticket::with(['user', 'staff', 'attachments'])->latest();
 
-        if ($request->has('status') && in_array($request->status, ['pending', 'completed'])) {
-            $query->where('status', $request->status);
+        if ($request->has('status')) {
+            if ($request->status === 'pending') {
+                $query->whereIn('status', ['pending', 'assigned', 'closed']);
+            } elseif ($request->status === 'completed') {
+                $query->where('status', 'completed');
+            }
         }
 
         if (auth()->user()->role == 'user') {
@@ -45,6 +49,7 @@ class TicketController extends Controller
                 'address' => 'nullable|string',
                 'contact_number' => 'nullable|string',
                 'machine_fault' => 'nullable|string',
+                'resolve_description' => 'nullable|string',
             ]);
 
             DB::beginTransaction();
@@ -91,6 +96,7 @@ class TicketController extends Controller
                 'address' => 'nullable|string',
                 'contact_number' => 'nullable|string',
                 'machine_fault' => 'nullable|string',
+                'resolve_description' => 'nullable|string',
             ]);
 
             DB::beginTransaction();
