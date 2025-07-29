@@ -15,7 +15,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('tickets', function (Blueprint $table) {
-            $table->text('resolve_description');
+            $table->text('resolve_description')->nullable();
         });
     }
 

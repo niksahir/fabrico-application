@@ -36,7 +36,6 @@ Route::middleware(['auth:sanctum', 'role:admin,user,staff'])->group(function () 
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::apiResource('quotations', QuotationController::class);
     //Route::apiResource('purchases', PurchaseController::class);
     Route::apiResource('staff', StaffController::class);
 
@@ -47,5 +46,6 @@ Route::middleware(['auth:sanctum', 'role:admin,user'])->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('machines', MachineController::class);
+    Route::apiResource('quotations', QuotationController::class);
 });
 
