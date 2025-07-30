@@ -13,15 +13,25 @@ class StaffController extends Controller
 {
     public function index(Request $request)
     {
-        $staff = User::where('role', 'staff')
-            ->latest()
-            ->paginate($request->get('per_page', 10));
+        try {
+            $query = User::where('role', 'staff');
 
-        if ($staff->isEmpty()) {
-            return response()->json(['message' => 'No staff found'], 200);
+            if ($search = $request->get('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%");
+                });
+            }
+
+            $staff = $query->latest()->paginate($request->get('per_page', 10));
+
+            return response()->json($staff, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch staff',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        return response()->json($staff);
     }
 
     public function store(Request $request)
@@ -72,21 +82,32 @@ class StaffController extends Controller
 
     public function update(Request $request, $id)
     {
-        $staff = User::where('role', 'staff')->findOrFail($id);
+        try {
+            $staff = User::where('role', 'staff')->findOrFail($id);
 
-        $validated = $request->validate([
-            'name' => 'sometimes|string',
-            'email' => 'sometimes|email|unique:users,email,' . $staff->id,
-            'phone' => 'sometimes|string',
-            'password' => 'nullable|string|min:6'
-        ]);
+            $validated = $request->validate([
+                'name' => 'sometimes|string',
+                'email' => 'sometimes|email|unique:users,email,' . $staff->id,
+                'phone' => 'sometimes|string',
+                'password' => 'nullable|string|min:6'
+            ]);
 
-        if (isset($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+            if (isset($validated['password'])) {
+                $validated['password'] = Hash::make($validated['password']);
+            }
+
+            $staff->update($validated);
+
+            return response()->json([
+                'message' => 'Staff updated successfully',
+                'staff' => $staff
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to update staff',
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        $staff->update($validated);
-        return $staff;
     }
 
     public function destroy($id)

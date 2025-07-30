@@ -16,12 +16,18 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $users = User::where('role', 'user')
-                ->withCount('tickets') // assuming User has tickets() relationship
-                ->latest()
-                ->paginate($request->get('per_page', 10));
+            $query = User::where('role', 'user')->withCount('tickets');
 
-            return response()->json($users);
+            if ($search = $request->get('search')) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            $users = $query->latest()->paginate($request->get('per_page', 10));
+
+            return response()->json($users, 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Failed to fetch users',
