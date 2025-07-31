@@ -23,6 +23,10 @@ class QuotationController extends Controller
                 });
             }
 
+            if ($search = $request->input('user_id')) {
+                $query->where('user_id', $request->input('user_id'));
+            }
+
             $quotations = $query->latest()->paginate($request->get('per_page', 10));
 
             return response()->json($quotations);
