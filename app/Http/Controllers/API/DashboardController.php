@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         try {
             $totalTickets = Ticket::count();
-            $pendingTickets = Ticket::where('status', 'pending')->count();
+            $pendingTickets = Ticket::whereIn('status', ['pending', 'assigned', 'closed'])->count();
             $completedTickets = Ticket::where('status', 'completed')->count();
             $totalUsers = User::where('role', 'user')->count();
             $staffMembers = User::where('role', 'staff')->count();
