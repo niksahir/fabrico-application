@@ -19,12 +19,16 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
         'password',
         'phone_number',
         'role',
         'last_login_at',
-        'fcm_token'
+        'fcm_token',
+        'company_name',
+        'address',
+        'address_link',
+        'purchase_date',
+        'expiry_date',
     ];
 
     /**

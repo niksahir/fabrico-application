@@ -14,10 +14,14 @@ class AuthController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'phone_number' => 'required|string|max:15',
-                'password' => 'required|string|min:6',
+                'phone_number' => 'required|string|max:15|unique:users,phone_number',
+                'password' => 'required|string',
                 'fcm_token' => 'nullable|string',
+                'company_name' => 'nullable|string|max:255',
+                'address' => 'nullable|string',
+                'address_link' => 'nullable|string',
+                'purchase_date' => 'nullable|date',
+                'expiry_date' => 'nullable|date',
             ]);
 
             if ($validator->fails()) {
@@ -26,11 +30,15 @@ class AuthController extends Controller
 
             $user = User::create([
                 'name' => $request->name,
-                'email' => $request->email,
                 'phone_number' => $request->phone_number,
                 'password' => Hash::make($request->password),
                 'role' => $request->role ?? 'user',
                 'fcm_token' => $request->fcm_token,
+                'company_name' => $request->company_name,
+                'address' => $request->address,
+                'address_link' => $request->address_link,
+                'purchase_date' => $request->purchase_date,
+                'expiry_date' => $request->expiry_date,
             ]);
 
             $token = $user->createToken('api_token')->plainTextToken;
@@ -45,7 +53,7 @@ class AuthController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
+                'phone_number' => 'required|string',
                 'password' => 'required|string',
                 'fcm_token' => 'nullable|string',
             ]);
@@ -54,7 +62,7 @@ class AuthController extends Controller
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('phone_number', $request->phone_number)->first();
 
             if (!$user || !Hash::check($request->password, $user->password)) {
                 return response()->json(['message' => 'Invalid credentials'], 401);

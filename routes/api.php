@@ -11,7 +11,8 @@ use App\Http\Controllers\API\{
     StaffController,
     UserController,
     DashboardController,
-    MachineController
+    MachineController,
+    TransactionController
 };
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
@@ -41,6 +42,10 @@ Route::middleware(['auth:sanctum', 'throttle:1000,1', 'admin'])->group(function 
     //Route::apiResource('purchases', PurchaseController::class);
     Route::apiResource('staff', StaffController::class);
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
+
+    // For Transaction
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transactions', [TransactionController::class, 'store']);
 });
 
 Route::middleware(['auth:sanctum', 'throttle:1000,1', 'role:admin,user'])->group(function () {
@@ -49,4 +54,3 @@ Route::middleware(['auth:sanctum', 'throttle:1000,1', 'role:admin,user'])->group
     Route::apiResource('machines', MachineController::class);
     Route::apiResource('quotations', QuotationController::class);
 });
-

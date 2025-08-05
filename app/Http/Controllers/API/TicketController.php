@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Ticket;
 use App\Models\TicketAttachment;
+use App\Models\Transaction;
 
 class TicketController extends Controller
 {
@@ -50,6 +51,8 @@ class TicketController extends Controller
                 'contact_number' => 'nullable|string',
                 'machine_fault' => 'nullable|string',
                 'resolve_description' => 'nullable|string',
+                'amount' => 'nullable|numeric|min:0',
+                'transaction_status' => 'in:free,pending,completed',
             ]);
 
             DB::beginTransaction();
@@ -97,6 +100,8 @@ class TicketController extends Controller
                 'contact_number' => 'nullable|string',
                 'machine_fault' => 'nullable|string',
                 'resolve_description' => 'nullable|string',
+                'amount' => 'nullable|numeric|min:0',
+                'transaction_status' => 'in:free,pending,completed',
             ]);
 
             DB::beginTransaction();
@@ -112,6 +117,18 @@ class TicketController extends Controller
                         'file_type' => $file->getClientMimeType(),
                     ]);
                 }
+            }
+
+            // If ticket is closed, create a transaction
+            if ($request->status === 'closed') {
+                Transaction::create(
+                    [
+                        'ticket_id' => $ticket->id,
+                        'amount' => $request->transaction_amount,
+                        'status' => $request->transaction_status,
+                        'description' => $request->transaction_description,
+                    ]
+                );
             }
 
             DB::commit();

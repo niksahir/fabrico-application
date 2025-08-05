@@ -62,11 +62,18 @@ class UserController extends Controller
                 ->latest()
                 ->paginate($perPage, ['*'], 'documents_page');
 
+            $transactions = Transaction::whereIn('ticket_id', function ($query) use ($id) {
+                $query->select('id')->from('tickets')->where('user_id', $id);
+            })
+            ->latest()
+            ->paginate($perPage, ['*'], 'transactions_page');
+
             return response()->json([
                 'user' => $user,
                 'tickets' => $tickets,
                 'quotations' => $quotations,
                 'documents' => $documents,
+                'transactions' => $transactions,
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -38,9 +38,8 @@ class StaffController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string',
-            'password' => 'required|string|min:6'
+            'phone_number' => 'required|string|max:15|unique:users,phone_number',
+            'password' => 'required|string'
         ]);
 
         $validated['role'] = 'staff';
@@ -87,8 +86,7 @@ class StaffController extends Controller
 
             $validated = $request->validate([
                 'name' => 'sometimes|string',
-                'email' => 'sometimes|email|unique:users,email,' . $staff->id,
-                'phone' => 'sometimes|string',
+                'phone_number' => 'sometimes|string|max:15|unique:users,phone_number,' . $staff->id,
                 'password' => 'nullable|string|min:6'
             ]);
 
