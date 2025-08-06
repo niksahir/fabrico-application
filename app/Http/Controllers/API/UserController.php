@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Ticket;
 use App\Models\Purchase;
+use App\Models\Transaction;
 use App\Models\Document;
 use App\Models\Quotation;
 use Illuminate\Http\Request;
