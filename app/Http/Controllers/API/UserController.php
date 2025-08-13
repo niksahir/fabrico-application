@@ -69,12 +69,31 @@ class UserController extends Controller
             ->latest()
             ->paginate($perPage, ['*'], 'transactions_page');
 
+            // Calculate amounts
+            $pendingAmount = Transaction::whereIn('ticket_id', function ($query) use ($id) {
+                    $query->select('id')->from('tickets')->where('user_id', $id);
+                })
+                ->where('status', 'pending')
+                ->sum('amount');
+
+            $completedAmount = Transaction::whereIn('ticket_id', function ($query) use ($id) {
+                    $query->select('id')->from('tickets')->where('user_id', $id);
+                })
+                ->where('status', 'completed')
+                ->sum('amount');
+
+            // Apply formula
+            $totalPendingAmount = $pendingAmount - $completedAmount;
+            if ($totalPendingAmount < 0) {
+                $totalPendingAmount = 0;
+            }
             return response()->json([
                 'user' => $user,
                 'tickets' => $tickets,
                 'quotations' => $quotations,
                 'documents' => $documents,
                 'transactions' => $transactions,
+                'total_pending_amount' => $totalPendingAmount,
             ]);
         } catch (\Exception $e) {
             return response()->json([
