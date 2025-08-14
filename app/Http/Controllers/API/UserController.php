@@ -79,7 +79,7 @@ class UserController extends Controller
             $completedAmount = Transaction::whereIn('ticket_id', function ($query) use ($id) {
                     $query->select('id')->from('tickets')->where('user_id', $id);
                 })
-                ->where('status', 'completed')
+                ->where('status', 'admin_credit')
                 ->sum('amount');
 
             // Apply formula
