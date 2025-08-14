@@ -82,7 +82,7 @@ class StaffController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $staff = User::where('role', 'staff')->findOrFail($id);
+            $staff = User::whereIn('role', ['staff', 'user'])->findOrFail($id);
 
             $validated = $request->validate([
                 'name' => 'sometimes|string',
@@ -97,12 +97,12 @@ class StaffController extends Controller
             $staff->update($validated);
 
             return response()->json([
-                'message' => 'Staff updated successfully',
+                'message' => 'Staff/User updated successfully',
                 'staff' => $staff
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to update staff',
+                'error' => 'Failed to update staff/user',
                 'message' => $e->getMessage()
             ], 500);
         }
@@ -110,9 +110,9 @@ class StaffController extends Controller
 
     public function destroy($id)
     {
-        $staff = User::where('role', 'staff')->findOrFail($id);
+        $staff = User::whereIn('role', ['staff', 'user'])->findOrFail($id);
         $staff->delete();
-        return response()->json(['message' => 'Staff user deleted']);
+        return response()->json(['message' => 'Staff/User user deleted']);
     }
 }
 
