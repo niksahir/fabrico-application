@@ -101,7 +101,7 @@ class TicketController extends Controller
                 'machine_fault' => 'nullable|string',
                 'resolve_description' => 'nullable|string',
                 'amount' => 'nullable|numeric|min:0',
-                'transaction_status' => 'in:free,pending,completed',
+                'transaction_status' => 'in:free,pending,completed,admin_credit',
             ]);
 
             DB::beginTransaction();

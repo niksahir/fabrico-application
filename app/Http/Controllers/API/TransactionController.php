@@ -16,7 +16,7 @@ class TransactionController extends Controller
             $validator = Validator::make($request->all(), [
                 'ticket_id' => 'required|exists:tickets,id',
                 'amount' => 'required|numeric|min:0',
-                'status' => 'required|in:free,pending,completed',
+                'status' => 'required|in:free,pending,completed,admin_credit',
                 'description' => 'nullable|string',
             ]);
 
