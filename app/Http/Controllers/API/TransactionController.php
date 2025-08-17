@@ -48,7 +48,16 @@ class TransactionController extends Controller
     {
         try {
             $perPage = $request->get('per_page', 10);
-            $transactions = Transaction::with('ticket')->latest()->paginate($perPage);
+            $query = Transaction::with('ticket')->latest();
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $query->whereBetween('created_at', [
+                    $request->start_date . ' 00:00:00',
+                    $request->end_date . ' 23:59:59'
+                ]);
+            }
+
+            $transactions = $query->paginate($perPage);
 
             return response()->json($transactions);
         } catch (\Throwable $e) {

@@ -40,7 +40,6 @@ Route::middleware(['auth:sanctum', 'throttle:1000,1', 'role:admin,user,staff'])-
 
 Route::middleware(['auth:sanctum', 'throttle:1000,1', 'admin'])->group(function () {
     //Route::apiResource('purchases', PurchaseController::class);
-    Route::apiResource('staff', StaffController::class);
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
 
     // For Transaction
@@ -53,4 +52,5 @@ Route::middleware(['auth:sanctum', 'throttle:1000,1', 'role:admin,user'])->group
     Route::apiResource('documents', DocumentController::class);
     Route::apiResource('machines', MachineController::class);
     Route::apiResource('quotations', QuotationController::class);
+    Route::apiResource('staff', StaffController::class);
 });
