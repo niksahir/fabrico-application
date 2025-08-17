@@ -63,11 +63,21 @@ class UserController extends Controller
                 ->latest()
                 ->paginate($perPage, ['*'], 'documents_page');
 
-            $transactions = Transaction::whereIn('ticket_id', function ($query) use ($id) {
+            // Transactions with optional date filter
+            $transactionsQuery = Transaction::whereIn('ticket_id', function ($query) use ($id) {
                 $query->select('id')->from('tickets')->where('user_id', $id);
-            })
-            ->latest()
-            ->paginate($perPage, ['*'], 'transactions_page');
+            });
+
+            if ($request->filled('start_date') && $request->filled('end_date')) {
+                $transactionsQuery->whereBetween('created_at', [
+                    $request->start_date . ' 00:00:00',
+                    $request->end_date . ' 23:59:59'
+                ]);
+            }
+
+            $transactions = $transactionsQuery
+                ->latest()
+                ->paginate($perPage, ['*'], 'transactions_page');
 
             // Calculate amounts
             $pendingAmount = Transaction::whereIn('ticket_id', function ($query) use ($id) {
@@ -82,11 +92,11 @@ class UserController extends Controller
                 ->where('status', 'admin_credit')
                 ->sum('amount');
 
-            // Apply formula
             $totalPendingAmount = $pendingAmount - $completedAmount;
             if ($totalPendingAmount < 0) {
                 $totalPendingAmount = 0;
             }
+
             return response()->json([
                 'user' => $user,
                 'tickets' => $tickets,
