@@ -22,6 +22,7 @@ class AuthController extends Controller
                 'address_link' => 'nullable|string',
                 'purchase_date' => 'nullable|date',
                 'expiry_date' => 'nullable|date',
+                'model_number' => 'nullable|string|max:255', // new
             ]);
 
             if ($validator->fails()) {
@@ -39,6 +40,7 @@ class AuthController extends Controller
                 'address_link' => $request->address_link,
                 'purchase_date' => $request->purchase_date,
                 'expiry_date' => $request->expiry_date,
+                'model_number' => $request->model_number, // new
             ]);
 
             $token = $user->createToken('api_token')->plainTextToken;
