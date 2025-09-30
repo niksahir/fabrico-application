@@ -92,9 +92,27 @@ class UserController extends Controller
                 ->where('status', 'admin_credit')
                 ->sum('amount');
 
+            // Admin Calculate amounts
+            $adminPendingAmount = Transaction::whereIn('ticket_id', function ($query) {
+                    $query->select('id')->from('tickets');
+                })
+                ->where('status', 'pending')
+                ->sum('amount');
+
+            $adminCompletedAmount = Transaction::whereIn('ticket_id', function ($query) {
+                    $query->select('id')->from('tickets');
+                })
+                ->where('status', 'admin_credit')
+                ->sum('amount');
+
             $totalPendingAmount = $pendingAmount - $completedAmount;
             if ($totalPendingAmount < 0) {
                 $totalPendingAmount = 0;
+            }
+
+            $totalAdminPendingAmount = $adminPendingAmount - $adminCompletedAmount;
+            if ($totalAdminPendingAmount < 0) {
+                $totalAdminPendingAmount = 0;
             }
 
             return response()->json([
@@ -104,6 +122,7 @@ class UserController extends Controller
                 'documents' => $documents,
                 'transactions' => $transactions,
                 'total_pending_amount' => $totalPendingAmount,
+                'total_admin_pending_amount' => $totalAdminPendingAmount,
             ]);
         } catch (\Exception $e) {
             return response()->json([
