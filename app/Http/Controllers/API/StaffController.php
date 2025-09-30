@@ -87,7 +87,8 @@ class StaffController extends Controller
             $validated = $request->validate([
                 'name' => 'sometimes|string',
                 'phone_number' => 'sometimes|string|max:15|unique:users,phone_number,' . $staff->id,
-                'password' => 'nullable|string|min:6'
+                'password' => 'nullable|string|min:6',
+                'model_number' => 'sometimes'
             ]);
 
             if (isset($validated['password'])) {
